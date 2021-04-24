@@ -2,10 +2,13 @@ import React, { useState, useEffect }  from "react";
 import ReactDOM from "react-dom"
 import styled from 'styled-components';
 import firebase, { storage, firestore } from "./config";
+import { useHistory } from "react-router-dom";
+
 const PayPalButton = window.paypal.Buttons.driver("react", { React, ReactDOM });
 
 function PayPal() {
   let id = window.location.pathname.split("/").pop();
+  var history = useHistory();
   var currUserID;
   firebase.auth().onAuthStateChanged(function(user) {
       if (user) {
@@ -19,7 +22,6 @@ function PayPal() {
   const [url, setURL] = useState("");
   const [fin, setFin] = useState(false);
   useEffect(() => {
-    let isMounted = true;
     const fetchUser = async() => {
       const response = firestore.collection('users').doc(id);
       await response.get().then(doc => {
@@ -36,7 +38,7 @@ function PayPal() {
     }
 
     fetchUser();
-    return () => (isMounted = false)
+    return () => (false)
   }, []);
 
   const createOrder = (data, actions) =>{
@@ -57,6 +59,8 @@ function PayPal() {
       firestore.collection('users').doc(currUserID).update({
         "favorites":
           firebase.firestore.FieldValue.arrayUnion(id)
+      }).then(function(details) {
+        history.push("/favorites")
       });
     });
   };
@@ -65,10 +69,14 @@ function PayPal() {
     <div>
       { fin ? (
         <React.Fragment>
+            <UserInformation>
+              <h1>Following: </h1>
               <h1>{user.username}</h1>
+              
               <Picture>
                   <img src = {url} alt = "Profile" />
               </Picture>
+            </UserInformation>
           <PayPalBlock>
             <PayPalButton
               createOrder={(data, actions) => createOrder(data, actions)}
@@ -84,14 +92,26 @@ function PayPal() {
 
 export default PayPal;
 
+const UserInformation = styled.div
+`
+  display: flex;
+  flex-direction: column;
+  justity-content: center;
+  align-items: center;
+  margin-top: 2rem;
+`
+
 const PayPalBlock = styled.div`
   display: grid;
-  margin: 100px 10px;
   place-items: center;
+  margin-top: 2rem;
 `
 
 const Picture = styled.div`
-    img {
-        width: 500px
+  margin-top: 2rem;
+  img {
+       width: 400px;
+      border: 1px solid blue;
+      border-radius: 25px;
     }
 `

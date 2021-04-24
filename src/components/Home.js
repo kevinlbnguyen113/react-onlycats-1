@@ -1,8 +1,13 @@
-import React from 'react';
+//import React from 'react';
 import styled from 'styled-components';
 import firebase, { storage, firestore } from "./config";
 import { useState, useEffect } from 'react';
 import { Link } from "react-router-dom";
+import React from "react";
+
+import { Carousel } from 'react-responsive-carousel';
+import "react-responsive-carousel/lib/styles/carousel.min.css";
+import "./carousel.css"
 
 function Home() {
     var currUserID;
@@ -21,13 +26,13 @@ function Home() {
     let [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        let isMounted = true
         setLoading(true);
+        
         const fetchUsers = async() => {
             const response = firestore.collection('users');
             const data = await response.get();
             data.docs.forEach(item=> {
-                if(currUserID === item.data().username) {}
+                if(currUserID === item.data().uid) {}
                 else {
                     storage.ref('images/').child(item.data().profilePicture).getDownloadURL().then((url) => {
                         setUsers(users => [...users, item.data()]);
@@ -38,20 +43,18 @@ function Home() {
             });
         }
         fetchUsers();
-        return () => (isMounted = false)
+        return () => (false)
       }, [])
       // {homes.map(home => <div>{home.name}</div>)}
     const usersList = users.map((data, index)=>{
         return(
-            <div key = {index}>
-                <Picture>
-                    <Link to={`/singleview/${data.uid}`}>
-                        <img src= {urls[index]} alt="profile" />
+
+                <div className="image" key = {index}>
+                    <Link to={`/singleview/${data.uid}` } style={{ textDecoration: 'none', color: '#000'}}>
+                        <UsernameDisplayed>{data.username}</UsernameDisplayed>
                     </Link>
-                </Picture>
-                <h2>{data.username}</h2>
-                <hr />
-            </div>
+                    <img src= {urls[index]} alt="profile" />
+                </div>
         )
     });
       return (
@@ -59,7 +62,9 @@ function Home() {
             { loading ? (<div>Loading...</div>) : 
                 (
                     <React.Fragment>
-                        {usersList}
+                        <Carousel infiniteloop autoPlay>
+                            {usersList}
+                        </Carousel>
                     </React.Fragment>
                 )
             }
@@ -69,8 +74,22 @@ function Home() {
 
 export default Home
 
-const Picture = styled.div`
-    img {
-        width: 140px
-    }
+
+// const CardWrapper = styled.div`
+//     a { 
+//         text-decoration: none;
+//         color: black;
+//     }
+    
+// `
+
+const UsernameDisplayed = styled.h2
+`
+    border: 1px solid #EEDBD7;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 25px;
+    background: white;
 `

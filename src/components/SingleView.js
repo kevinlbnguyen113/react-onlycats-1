@@ -20,7 +20,6 @@ function SingleView() {
     const [imgFin, setImgFin] = useState(false);
     const [isSubbed, setIsSubbed] = useState(false);
     useEffect(() => {
-        let isMounted = true
         const response = firestore.collection('users').doc(id);
 
         const fetchUsers = async() => {
@@ -47,15 +46,14 @@ function SingleView() {
                     if(element === id) {
                         response.get().then(doc => {
                             let imgList = doc.data().img;
+                            console.log(imgList.length, imgList);
                             if(imgList.length < 2) {
                                 console.log("there are no images.");
                             } else {
                                 imgList.slice(1).forEach(element => {
-                                    firestore.collection('users').doc(element).get().then(item => {
-                                        let varo = item.data();
-                                        storage.ref('images/').child(varo.profilePicture).getDownloadURL().then((url) => {
-                                            setImg(img => [...img, url]);
-                                        });
+                                    console.log(element);
+                                    storage.ref('images/').child(element).getDownloadURL().then((url) => {
+                                        setImg(img => [...img, url]);
                                     });
                                 });
                             }
@@ -72,17 +70,18 @@ function SingleView() {
 
     const imageList = function() {
         if(isSubbed) {
-            console.log("subbed")
-            if(img.length > 1) {
-                img.map((url, index) => {
-                    return(
-                        <div key = {index}>
-                            <Picture>
-                                <img src = {url} alt = "images" />
-                            </Picture>
-                        </div>
-                    )
-                })
+            if(img.length > 0) {
+                return(
+                    img.map((urll, index) => {
+                        return(
+                            <div key = {index}>
+                                <ImgListPicture>
+                                    <img src= {urll} alt="profile" />
+                                </ImgListPicture>
+                            </div>
+                        )
+                    })
+                );
             } else {
                 return(
                     <div>
@@ -104,30 +103,97 @@ function SingleView() {
     };
 
     return(
-        <div>
+        <SingleViewContainer>
         {fin && imgFin ? (
             <React.Fragment>
-                <h1>{user.username}</h1>
-                <h2>{user.description}</h2>
-                <Picture>
-                    <img src = {url} alt = "Profile" />
-                </Picture>
-{/*        follow button that links to paypal && passes in id param          */}
-                <Link to={`/cart/${id}`}>
-                    <button disabled={isSubbed}>Follow</button>
-                </Link>
-                {imageList()}
+                <Content>
+                    <UsernameAndFollow>
+                        <h1>{user.username}</h1>
+                        <Link to={`/cart/${id}`}>
+                            <FollowButton disabled={isSubbed}>Follow</FollowButton>
+                        </Link>
+                    </UsernameAndFollow>
+                    
+                    <DescriptionH2>Description: {user.description}</DescriptionH2>
+                    <Picture>
+                        <img src = {url} alt = "Profile" />
+                    </Picture>
+                    {console.log("using img list as intended")}
+                    <hr style = {{margin: 12}}/>
+                    <ImgListContainer>
+                        {imageList()}
+                    </ImgListContainer>
+                </Content>
             </React.Fragment>
         ) : (null) }
-        </div>
+        </SingleViewContainer>
 
     );
 }
 
 export default SingleView
 
+const SingleViewContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+`
+const ImgListContainer = styled.div`
+    display: flex;
+    justify-content: center;
+`
+
+const ImgListPicture = styled.div `
+    img {
+        border-radius: 25px;
+        border: 2px solid #7F85F4;
+        width: 200px
+    }
+`
+const Content = styled.div`
+`
+
+const UsernameAndFollow = styled.div`
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1rem;
+    text-decoration: underline;
+`
+
+const FollowButton = styled.button`
+    width: 8rem;
+    height: 46px;
+    border: 1px solid;
+    background: #2691d9;
+    border-radius: 30px;
+    color: white;
+    font-size: 14px;
+    cursor: pointer;
+    outline: none;
+    margin-left: 1rem;
+    &:hover {
+        border-color: black;
+        transition: 0.3s;
+    }
+    &:disabled { 
+        color: white;
+        background: white;
+        font-weight: bold;
+        font-size: 18px;
+        cursor: default;
+        border-color: white;
+    }
+`
+
+const DescriptionH2 = styled.h2`
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+`
+
 const Picture = styled.div`
     img {
+        border-radius: 25px;
+        border: 2px solid #7F85F4;
         width: 500px
     }
 `
